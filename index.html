@@ -1,0 +1,3220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr.QR Phase3 - 持出者名機能付き</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+        
+        .header p {
+            font-size: 1.0rem;
+            opacity: 0.9;
+            margin: 0;
+            line-height: 1.2;
+        }
+        
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            min-height: 75vh;
+        }
+        
+        .left-panel {
+            padding: 25px;
+        }
+        
+        .right-panel {
+            background: #f8fafc;
+            border-left: 1px solid #e5e7eb;
+            padding: 25px;
+            overflow-y: auto;
+            max-height: 75vh;
+        }
+        
+        .scanner-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 2px solid #e5e7eb;
+        }
+        
+        .scan-button {
+            width: 100%;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        .scan-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+        
+        /* 持出者名選択セクション */
+        .borrower-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 2px solid #e5e7eb;
+        }
+        
+        .borrower-section h4 {
+            color: #374151;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .current-borrower {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .current-borrower.no-selection {
+            background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+            box-shadow: 0 4px 15px rgba(156, 163, 175, 0.3);
+        }
+        
+        .borrower-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+        
+        .borrower-btn {
+            background: white;
+            border: 2px solid #e5e7eb;
+            color: #374151;
+            padding: 6px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            position: relative;
+            font-weight: 500;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .borrower-btn:hover {
+            border-color: #3b82f6;
+            background: #f0f9ff;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+        }
+        
+        .borrower-btn.selected {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            border-color: #3b82f6;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+        
+        .borrower-btn.empty {
+            background: #f9fafb;
+            border: 2px dashed #d1d5db;
+            color: #9ca3af;
+            font-style: italic;
+        }
+        
+        .borrower-btn.empty:hover {
+            border-color: #6b7280;
+            background: #f3f4f6;
+        }
+        
+        .edit-borrower-btn {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+            width: 100%;
+            font-weight: 600;
+        }
+        
+        .edit-borrower-btn:hover {
+            background: #d97706;
+        }
+        
+        .camera-container {
+            display: none;
+            position: relative;
+            margin-top: 20px;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #000;
+        }
+        
+        #video {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+        
+        .camera-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 60%;
+            border: 3px solid #10b981;
+            border-radius: 15px;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.3);
+        }
+        
+        .camera-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .stop-button {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .stop-button:hover {
+            background: #dc2626;
+        }
+        
+        .status-card {
+            background: white;
+            border-radius: 15px;
+            padding: 18px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 2px solid #e5e7eb;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #6b7280;
+            font-size: 16px;
+        }
+        
+        .borrowed-instruments {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 2px solid #e5e7eb;
+            min-height: 300px;
+            max-height: 400px;
+        }
+        
+        .borrowed-instruments h4 {
+            color: #374151;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        
+        .borrowed-list {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        
+        .borrowed-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .borrowed-item:hover {
+            background: #f3f4f6;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .borrowed-info {
+            flex: 1;
+        }
+        
+        .borrowed-no {
+            font-weight: 700;
+            color: #1f2937;
+            font-size: 14px;
+        }
+        
+        .borrowed-name {
+            color: #6b7280;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+        
+        .borrowed-details {
+            text-align: right;
+            font-size: 11px;
+        }
+        
+        .borrowed-user {
+            color: #7c2d12;
+            font-weight: 600;
+        }
+        
+        .borrowed-datetime {
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+        
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e5e7eb;
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 600;
+        }
+        
+        .stat-card.total .stat-number { color: #3b82f6; }
+        .stat-card.available .stat-number { color: #10b981; }
+        .stat-card.borrowed .stat-number { color: #f59e0b; }
+        .stat-card.error .stat-number { color: #ef4444; }
+        .stat-card.data-source .stat-number { color: #8b5cf6; font-size: 12px; font-weight: 600; }
+        
+        .status-available {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            border: 2px solid #10b981;
+            color: #065f46;
+        }
+        
+        .status-borrowed {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            color: #92400e;
+        }
+        
+        .status-error {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border: 2px solid #ef4444;
+            color: #991b1b;
+        }
+        
+
+        
+        .file-management {
+            background: white;
+            border-radius: 15px;
+            padding: 18px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .file-management h4 {
+            color: #374151;
+            margin-bottom: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+        
+        .auto-save-status {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0f9ff;
+            border-radius: 8px;
+            border: 1px solid #0ea5e9;
+            font-size: 12px;
+            color: #0c4a6e;
+        }
+        
+        .auto-save-status.saving {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #92400e;
+        }
+        
+        .auto-save-status.error {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+        
+        .save-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .save-button {
+            background: #059669;
+            color: white;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-weight: 500;
+        }
+        
+        .save-button:hover {
+            background: #047857;
+        }
+        
+        .save-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .activity-log {
+            background: white;
+            border-radius: 15px;
+            padding: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .activity-log h3 {
+            color: #374151;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        
+        .log-container {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            padding: 12px;
+            border-left: 4px solid #e5e7eb;
+            margin-bottom: 8px;
+            border-radius: 0 8px 8px 0;
+            background: #f9fafb;
+            transition: all 0.2s;
+        }
+        
+        .log-entry:hover {
+            background: #f3f4f6;
+        }
+        
+        .log-entry.borrow {
+            border-left-color: #f59e0b;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        }
+        
+        .log-entry.return {
+            border-left-color: #10b981;
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        }
+        
+        .log-entry.system {
+            border-left-color: #3b82f6;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        }
+        
+        .log-entry.file {
+            border-left-color: #8b5cf6;
+            background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+        }
+        
+        .log-entry.error {
+            border-left-color: #ef4444;
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        }
+        
+        .log-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .log-action {
+            font-weight: 700;
+            color: #1f2937;
+            font-size: 15px;
+        }
+        
+        .log-time {
+            font-size: 12px;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+        
+        .log-details {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        
+        .current-file-info {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .current-file-info h5 {
+            color: #475569;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .file-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3px;
+            font-size: 11px;
+        }
+        
+        .file-info-label {
+            color: #64748b;
+        }
+        
+        .file-info-value {
+            color: #1e293b;
+            font-weight: 500;
+        }
+        
+        .audio-feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            pointer-events: none;
+            font-size: 3rem;
+            animation: audioFeedback 0.6s ease-out;
+        }
+        
+        .audio-feedback.success {
+            color: #10b981;
+        }
+        
+        .audio-feedback.error {
+            color: #ef4444;
+        }
+        
+        @keyframes audioFeedback {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+        
+        /* モーダルスタイル - スクロール対応修正 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            overflow-y: auto;
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .modal-header h3 {
+            color: #374151;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .close {
+            color: #9ca3af;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .close:hover {
+            color: #374151;
+        }
+        
+        .borrower-edit-grid {
+            display: grid;
+            gap: 15px;
+            padding: 10px 0;
+        }
+        
+        .borrower-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .borrower-input-group label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+        
+        .borrower-input-group input {
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+        
+        .borrower-input-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding-top: 10px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .modal-btn.primary {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .modal-btn.primary:hover {
+            background: #2563eb;
+        }
+        
+        .modal-btn.secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .modal-btn.secondary:hover {
+            background: #e5e7eb;
+        }
+        
+        @media (max-width: 1400px) {
+            .main-layout {
+                grid-template-columns: 1fr 350px;
+            }
+            
+            .right-panel {
+                padding: 20px;
+            }
+            
+            .left-panel {
+                padding: 20px;
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .right-panel {
+                border-left: none;
+                border-top: 1px solid #e5e7eb;
+                max-height: 60vh;
+            }
+            
+            .stats-section {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .borrower-buttons {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 12px 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+                line-height: 1.1;
+            }
+            
+            .header p {
+                font-size: 0.9rem;
+            }
+            
+            .main-layout {
+                min-height: 70vh;
+            }
+            
+            .stats-section {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            
+            .container {
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            
+            .save-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .borrowed-instruments {
+                min-height: 250px;
+                max-height: 300px;
+            }
+            
+            .borrowed-list {
+                max-height: 250px;
+            }
+            
+            .borrower-buttons {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .modal-content {
+                margin: 2% auto;
+                padding: 20px;
+                max-height: 95vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Ｍｒ.ＱＲ　Phase3</h1>
+            <p>QRコード持出・返却管理 - 持出者名機能付き</p>
+        </div>
+        
+        <div class="main-layout">
+            <!-- 左パネル: スキャナーとコントロール -->
+            <div class="left-panel">
+                <!-- スキャナーセクション -->
+                <div class="scanner-section">
+                    <button class="scan-button" id="scanButton" onclick="toggleScanner()">
+                        📷 カメラでQRコードスキャン
+                    </button>
+                    
+                    <div class="camera-container" id="cameraContainer">
+                        <video id="video" autoplay playsinline></video>
+                        <div class="camera-overlay"></div>
+                        <div class="camera-controls">
+                            <button class="stop-button" onclick="stopScanner()">
+                                📷 スキャン停止
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 持出者名選択セクション -->
+                <div class="borrower-section">
+                    <h4>👤 持出者選択</h4>
+                    
+                    <div class="current-borrower" id="currentBorrower">
+                        持出者が選択されていません
+                    </div>
+                    
+                    <div class="borrower-buttons" id="borrowerButtons">
+                        <!-- 持出者ボタンがここに動的生成されます -->
+                    </div>
+                    
+                    <button class="edit-borrower-btn" onclick="openBorrowerEditor()">
+                        ✏️ 持出者名を編集
+                    </button>
+                </div>
+                
+                <!-- 状態表示 -->
+                <div id="statusCard" class="status-card">📷 QRコードをスキャンしてください</div>
+                
+                <!-- 持出中機器表示 -->
+                <div class="borrowed-instruments">
+                    <h4>📤 持出中の機器</h4>
+                    <div class="borrowed-list" id="borrowedList"></div>
+                </div>
+                
+
+            </div>
+            
+            <!-- 右パネル: 統計と管理 -->
+            <div class="right-panel">
+                <!-- 統計セクション -->
+                <div class="stats-section">
+                    <div class="stat-card total">
+                        <div class="stat-number" id="totalCount">0</div>
+                        <div class="stat-label">総数</div>
+                    </div>
+                    <div class="stat-card available">
+                        <div class="stat-number" id="availableCount">0</div>
+                        <div class="stat-label">利用可能</div>
+                    </div>
+                    <div class="stat-card borrowed">
+                        <div class="stat-number" id="borrowedCount">0</div>
+                        <div class="stat-label">持出中</div>
+                    </div>
+                    <div class="stat-card error">
+                        <div class="stat-number" id="errorCount">0</div>
+                        <div class="stat-label">エラー</div>
+                    </div>
+                    <div class="stat-card data-source">
+                        <div class="stat-number" id="dataSourceLabel">ファイル</div>
+                        <div class="stat-label">データ</div>
+                    </div>
+                </div>
+                
+                <!-- バックアップ管理セクション -->
+                <div class="file-management">
+                    <h4>📤 バックアップ管理</h4>
+                    
+                    <!-- LocalStorage自動保存セクション -->
+                    <div style="margin: 0 0 15px 0; padding: 12px; background: #f0fdf4; border-radius: 8px; border: 2px solid #16a34a;">
+                        <strong style="color: #15803d; font-size: 14px;">🔄 メイン保存：LocalStorage自動保存</strong><br>
+                        <div style="font-size: 11px; color: #16a34a; margin: 5px 0;">
+                            ✅ デフォルトON　✅ 起動時自動読み込み　✅ データ変更時自動保存　✅ 終了時自動保存
+                        </div>
+                        <div style="display: flex; gap: 8px; margin-top: 8px; align-items: center; flex-wrap: wrap;">
+                            <button id="autoSaveToggle" onclick="toggleAutoSave()" style="background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600;">
+                                🔇 自動保存OFF
+                            </button>
+                            <button onclick="clearLocalStorageData()" style="background: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">
+                                🗑️ 自動保存データ削除
+                            </button>
+                        </div>
+                        <div id="autoSaveDisplay" style="font-size: 11px; color: #059669; margin-top: 6px; font-weight: 600;">
+                            🔄 自動保存有効（デフォルトON）
+                        </div>
+                    </div>
+                    
+                    <!-- 現在のデータファイル情報 -->
+                    <div class="current-file-info">
+                        <h5>📊 現在のデータ状況</h5>
+                        <div class="file-info-item">
+                            <span class="file-info-label">データソース:</span>
+                            <span class="file-info-value" id="currentFileName">LocalStorage自動保存</span>
+                        </div>
+                        <div class="file-info-item">
+                            <span class="file-info-label">最終更新:</span>
+                            <span class="file-info-value" id="lastModified">-</span>
+                        </div>
+                        <div class="file-info-item">
+                            <span class="file-info-label">機器数:</span>
+                            <span class="file-info-value" id="fileInstrumentCount">0台</span>
+                        </div>
+                    </div>
+                    
+                    <!-- バックアップ用ファイル操作 -->
+                    <div style="margin: 12px 0; padding: 10px; background: #fefbf3; border-radius: 8px; border: 1px solid #f59e0b;">
+                        <strong style="color: #d97706; font-size: 13px;">📁 バックアップ用ファイル操作</strong><br>
+                        <div style="font-size: 10px; color: #92400e; margin: 4px 0;">
+                            外部ファイル読み込み・バックアップ作成用
+                        </div>
+                        
+                        <!-- ファイル読み込みコントロール -->
+                        <div class="save-controls" style="margin-top: 8px;">
+                            <button class="save-button" style="background: #3b82f6;" onclick="loadNewFile()">
+                                📂 JSONファイル読み込み
+                            </button>
+                            <button class="save-button" style="background: #8b5cf6;" onclick="loadSampleData()">
+                                🔧 サンプルデータ読み込み
+                            </button>
+                        </div>
+                        
+                        <!-- バックアップ作成コントロール -->
+                        <div class="save-controls">
+                            <button class="save-button" onclick="manualSave()">
+                                💾 バックアップ作成
+                            </button>
+                            <button class="save-button" style="background: #059669;" onclick="exportBackup()">
+                                📤 日時付きバックアップ
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 保存方式の説明 -->
+                    <div style="margin: 8px 0; padding: 8px; background: #f0f9ff; border-radius: 8px; font-size: 10px; color: #0c4a6e;">
+                        <strong>💡 保存システムについて</strong><br>
+                        🔄 <strong>メイン</strong>: LocalStorage自動保存（ブラウザ内で自動管理・デフォルトON）<br>
+                        📤 <strong>バックアップ</strong>: 手動ファイル保存（他端末共有・長期保存用）<br>
+                        📁 <strong>ファイル読み込み</strong>: 外部データの取り込み<br>
+                        <span id="fileSystemSupport"></span>
+                    </div>
+                    
+                    <!-- デバッグコントロール -->
+                    <div class="save-controls" style="margin-top: 8px;">
+                        <button class="save-button" style="background: #6b7280;" onclick="debugInstruments()">
+                            🔍 データ詳細確認
+                        </button>
+                        <button class="save-button" style="background: #dc2626;" onclick="validateInstrumentsData()">
+                            ⚠️ 整合性チェック
+                        </button>
+                    </div>
+                    
+                    <!-- 手動保存ステータス -->
+                    <div class="auto-save-status" id="autoSaveStatus">
+                        <strong>📤 自動保存メイン運用</strong><br>
+                        <span id="autoSaveMessage">LocalStorage自動保存がメイン動作中（デフォルトON）</span>
+                    </div>
+                    
+                    <input type="file" id="fileInput" accept=".json" style="display: none;" />
+                    
+                    <p style="font-size: 11px; color: #6b7280; margin-top: 12px;">
+                        💡 <strong>推奨運用方法:</strong><br>
+                        📂 通常: LocalStorage自動保存で運用（デフォルトON）<br>
+                        💾 定期的: バックアップ作成で外部保存<br>
+                        🔄 移行時: ファイル読み込みで他端末から移行<br>
+                        🌐 バックアップファイルを端末間で共有可能
+                    </p>
+                </div>
+                
+                <!-- 音声設定セクション -->
+                <div class="file-management">
+                    <h4>🎵 音声設定</h4>
+                    
+                    <!-- 現在の音声設定状況 -->
+                    <div class="current-file-info">
+                        <h5>🔊 現在の音声設定</h5>
+                        <div class="file-info-item">
+                            <span class="file-info-label">持出音:</span>
+                            <span class="file-info-value" id="borrowSoundStatus">ファンファーレ+音声合成</span>
+                        </div>
+                        <div class="file-info-item">
+                            <span class="file-info-label">返却音:</span>
+                            <span class="file-info-value" id="returnSoundStatus">爆発音+音声合成</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 音声ファイル設定 -->
+                    <div style="margin: 12px 0; padding: 10px; background: #f0f9ff; border-radius: 8px; border: 1px solid #3b82f6;">
+                        <strong style="color: #1d4ed8; font-size: 13px;">🎤 カスタム音声ファイル</strong><br>
+                        <div style="font-size: 10px; color: #1e40af; margin: 4px 0;">
+                            MP3、WAV、OGG形式の音声ファイルをアップロード可能
+                        </div>
+                        
+                        <!-- 持出音設定 -->
+                        <div class="save-controls" style="margin-top: 8px;">
+                            <button class="save-button" style="background: #10b981;" onclick="document.getElementById('borrowSoundInput').click()">
+                                📤 持出音ファイル選択
+                            </button>
+                            <button class="save-button" style="background: #ef4444;" onclick="clearCustomSound('borrow'); updateSoundStatus();">
+                                🗑️ 持出音リセット
+                            </button>
+                        </div>
+                        
+                        <!-- 返却音設定 -->
+                        <div class="save-controls">
+                            <button class="save-button" style="background: #f59e0b;" onclick="document.getElementById('returnSoundInput').click()">
+                                📥 返却音ファイル選択
+                            </button>
+                            <button class="save-button" style="background: #ef4444;" onclick="clearCustomSound('return'); updateSoundStatus();">
+                                🗑️ 返却音リセット
+                            </button>
+                        </div>
+                        
+                        <!-- テスト再生 -->
+                        <div class="save-controls">
+                            <button class="save-button" style="background: #8b5cf6;" onclick="playSuccessSound()">
+                                🎵 持出音テスト
+                            </button>
+                            <button class="save-button" style="background: #8b5cf6;" onclick="playReturnSound()">
+                                🎵 返却音テスト
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 音声ファイルの説明 -->
+                    <div style="margin: 8px 0; padding: 8px; background: #fef3c7; border-radius: 8px; font-size: 10px; color: #92400e;">
+                        <strong>💡 音声ファイルについて</strong><br>
+                        📁 対応形式: MP3, WAV, OGG, M4A<br>
+                        ⏱️ 推奨長さ: 1〜3秒程度<br>
+                        🔊 ファイルサイズ: 1MB以下推奨<br>
+                        🎯 設定後はテスト再生で確認可能
+                    </div>
+                    
+                    <!-- 隠しファイル入力 -->
+                    <input type="file" id="borrowSoundInput" accept="audio/*" style="display: none;" />
+                    <input type="file" id="returnSoundInput" accept="audio/*" style="display: none;" />
+                </div>
+                
+                <!-- 活動ログ -->
+                <div class="activity-log">
+                    <h3>📋 活動ログ</h3>
+                    <div class="log-container" id="activityLog"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 持出者名編集モーダル -->
+    <div id="borrowerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>👤 持出者名編集</h3>
+                <span class="close" onclick="closeBorrowerEditor()">&times;</span>
+            </div>
+            <div class="borrower-edit-grid" id="borrowerEditGrid">
+                <!-- 持出者名入力フィールドがここに動的生成されます -->
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" onclick="closeBorrowerEditor()">キャンセル</button>
+                <button class="modal-btn primary" onclick="saveBorrowerNames()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QRコードライブラリ -->
+    <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+    
+    <script>
+        // グローバル変数
+        let stream = null;
+        let instruments = new Map();
+        let activityLog = [];
+        let isScanning = false;
+        let animationId = null;
+        let lastScannedCode = null;
+        let lastScannedTime = 0;
+        const SCAN_COOLDOWN = 3000;
+        let dataSource = 'ファイル';
+        let currentFileName = '';
+        let lastSaveTime = null;
+        let autoSaveInterval = null;
+        const DATA_FILENAME = 'mr_qr_data.json';
+        
+        // LocalStorage自動保存関連（デフォルトON）
+        const LOCALSTORAGE_KEY = 'mr_qr_auto_save_data';
+        let autoSaveEnabled = true;  // デフォルトON
+        let lastAutoSaveTime = null;
+        
+        // 持出者名管理関連
+        const BORROWER_NAMES_KEY = 'mr_qr_borrower_names';
+        let borrowerNames = [];
+        let selectedBorrowerIndex = -1;
+        
+        // 音響システム（デフォルトON）+ 外部音声対応
+        let audioContext = null;
+        let isAudioEnabled = true;  // デフォルトON
+        let audioInitialized = false;
+        
+        // 外部音声ファイル用
+        let customBorrowSound = null;  // 持出音用
+        let customReturnSound = null;  // 返却音用
+        
+        // 外部音声ファイルの読み込み
+        function loadAudioFile(file, type) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (!audioContext) {
+                        reject(new Error('AudioContext が初期化されていません'));
+                        return;
+                    }
+                    
+                    audioContext.decodeAudioData(e.target.result)
+                        .then(audioBuffer => {
+                            if (type === 'borrow') {
+                                customBorrowSound = audioBuffer;
+                                console.log('📤 持出音声ファイル読み込み完了');
+                                addToLog('SYSTEM', '持出音声ファイルを設定', `ファイル: ${file.name}`);
+                            } else if (type === 'return') {
+                                customReturnSound = audioBuffer;
+                                console.log('📥 返却音声ファイル読み込み完了');
+                                addToLog('SYSTEM', '返却音声ファイルを設定', `ファイル: ${file.name}`);
+                            }
+                            resolve(audioBuffer);
+                        })
+                        .catch(error => {
+                            console.error('音声ファイルデコードエラー:', error);
+                            reject(error);
+                        });
+                };
+                reader.onerror = () => reject(new Error('ファイル読み込みエラー'));
+                reader.readAsArrayBuffer(file);
+            });
+        }
+        
+        // カスタム音声の再生
+        function playCustomSound(audioBuffer) {
+            if (!audioContext || !audioBuffer) return;
+            
+            try {
+                const source = audioContext.createBufferSource();
+                const gainNode = audioContext.createGain();
+                
+                source.buffer = audioBuffer;
+                source.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // 音量調整（少し上げて聞きやすく）
+                gainNode.gain.setValueAtTime(0.9, audioContext.currentTime);
+                
+                source.start(audioContext.currentTime);
+                console.log('🎵 カスタム音声再生');
+            } catch (error) {
+                console.warn('⚠️ カスタム音声再生エラー:', error);
+            }
+        }
+        
+        // カスタム音声のクリア
+        function clearCustomSound(type) {
+            if (type === 'borrow') {
+                customBorrowSound = null;
+                console.log('📤 持出音声をクリア');
+                addToLog('SYSTEM', '持出音声をクリア', 'デフォルトのファンファーレ+音声合成に戻します');
+            } else if (type === 'return') {
+                customReturnSound = null;
+                console.log('📥 返却音声をクリア');
+                addToLog('SYSTEM', '返却音声をクリア', 'デフォルトの爆発音+音声合成に戻します');
+            }
+        }
+        function initBorrowerNames() {
+            // LocalStorageから持出者名を読み込み
+            const savedNames = localStorage.getItem(BORROWER_NAMES_KEY);
+            if (savedNames) {
+                try {
+                    borrowerNames = JSON.parse(savedNames);
+                } catch (error) {
+                    console.warn('持出者名データの読み込みに失敗:', error);
+                    borrowerNames = [];
+                }
+            }
+            
+            // 初期値または不足分を補完（16名に拡張）
+            while (borrowerNames.length < 16) {
+                borrowerNames.push('');
+            }
+            
+            // デフォルト名を設定（空の場合のみ）
+            const defaultNames = [
+                '田中', '佐藤', '鈴木', '高橋', '伊藤',
+                '渡辺', '山本', '中村', '小林', '加藤',
+                '吉田', '山田', '松本', '井上', '木村', '林'
+            ];
+            
+            borrowerNames = borrowerNames.map((name, index) => 
+                name.trim() || defaultNames[index] || ''
+            );
+            
+            // 配列の長さを16に固定
+            borrowerNames = borrowerNames.slice(0, 16);
+            
+            saveBorrowerNamesToStorage();
+            updateBorrowerButtons();
+        }
+        
+        // 持出者名をLocalStorageに保存
+        function saveBorrowerNamesToStorage() {
+            try {
+                localStorage.setItem(BORROWER_NAMES_KEY, JSON.stringify(borrowerNames));
+            } catch (error) {
+                console.warn('持出者名の保存に失敗:', error);
+            }
+        }
+        
+        // 持出者ボタンの更新
+        function updateBorrowerButtons() {
+            const container = document.getElementById('borrowerButtons');
+            container.innerHTML = '';
+            
+            borrowerNames.forEach((name, index) => {
+                const button = document.createElement('button');
+                button.className = 'borrower-btn';
+                
+                if (name.trim()) {
+                    button.textContent = name;
+                    button.onclick = () => selectBorrower(index);
+                    
+                    if (index === selectedBorrowerIndex) {
+                        button.classList.add('selected');
+                    }
+                } else {
+                    button.textContent = '未設定';
+                    button.classList.add('empty');
+                    button.onclick = () => openBorrowerEditor();
+                }
+                
+                container.appendChild(button);
+            });
+            
+            updateCurrentBorrowerDisplay();
+        }
+        
+        // 持出者の選択
+        function selectBorrower(index) {
+            if (borrowerNames[index].trim()) {
+                selectedBorrowerIndex = index;
+                updateBorrowerButtons();
+                updateCurrentBorrowerDisplay();
+                
+                addToLog('SYSTEM', '持出者を選択', `${borrowerNames[index]} を選択しました`);
+                console.log(`持出者選択: ${borrowerNames[index]} (インデックス: ${index})`);
+            }
+        }
+        
+        // 現在の持出者表示を更新
+        function updateCurrentBorrowerDisplay() {
+            const display = document.getElementById('currentBorrower');
+            
+            if (selectedBorrowerIndex >= 0 && borrowerNames[selectedBorrowerIndex].trim()) {
+                display.textContent = `選択中: ${borrowerNames[selectedBorrowerIndex]}`;
+                display.className = 'current-borrower';
+            } else {
+                display.textContent = '持出者が選択されていません';
+                display.className = 'current-borrower no-selection';
+            }
+        }
+        
+        // 持出者名編集モーダルを開く
+        function openBorrowerEditor() {
+            const modal = document.getElementById('borrowerModal');
+            const editGrid = document.getElementById('borrowerEditGrid');
+            
+            editGrid.innerHTML = '';
+            
+            borrowerNames.forEach((name, index) => {
+                const inputGroup = document.createElement('div');
+                inputGroup.className = 'borrower-input-group';
+                
+                inputGroup.innerHTML = `
+                    <label for="borrower-${index}">持出者 ${index + 1}</label>
+                    <input type="text" id="borrower-${index}" value="${name}" placeholder="持出者名を入力..." maxlength="20" />
+                `;
+                
+                editGrid.appendChild(inputGroup);
+            });
+            
+            modal.style.display = 'block';
+        }
+        
+        // 持出者名編集モーダルを閉じる
+        function closeBorrowerEditor() {
+            document.getElementById('borrowerModal').style.display = 'none';
+        }
+        
+        // 持出者名を保存
+        function saveBorrowerNames() {
+            const newNames = [];
+            
+            for (let i = 0; i < 16; i++) {
+                const input = document.getElementById(`borrower-${i}`);
+                if (input) {
+                    newNames.push(input.value.trim());
+                }
+            }
+            
+            borrowerNames = newNames;
+            saveBorrowerNamesToStorage();
+            updateBorrowerButtons();
+            closeBorrowerEditor();
+            
+            addToLog('SYSTEM', '持出者名を更新', `${newNames.filter(n => n).length}名の持出者を設定しました`);
+            console.log('持出者名更新:', borrowerNames);
+            
+            // 自動保存トリガー
+            triggerAutoSave();
+        }
+        
+        // 音響システムの初期化（デフォルトON）
+        function initAudioSystem() {
+            try {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    console.log('🎵 音響システム初期化完了（デフォルトON）');
+                    
+                    if (audioContext.state === 'suspended') {
+                        console.log('🎵 音響システム：ユーザーインタラクション後に自動有効化予定');
+                    } else {
+                        console.log('🔊 音響システム: 有効');
+                    }
+                }
+                audioInitialized = true;
+                return true;
+            } catch (error) {
+                console.warn('⚠️ Web Audio API初期化失敗:', error);
+                isAudioEnabled = false;
+                return false;
+            }
+        }
+        
+        // 音響システムのアクティベーション
+        function activateAudioSystem() {
+            if (!audioInitialized) {
+                initAudioSystem();
+            }
+            
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume().then(() => {
+                    console.log('🎵 音響システムアクティベート完了');
+                    playBeepSound(800, 150, 'success');
+                }).catch(error => {
+                    console.warn('⚠️ 音響システムアクティベート失敗:', error);
+                });
+            } else if (audioContext && audioContext.state === 'running') {
+                playBeepSound(800, 150, 'success');
+            }
+        }
+        
+        // ビープ音の生成・再生
+        function playBeepSound(frequency = 800, duration = 200, type = 'success') {
+            showVisualFeedback(type);
+            
+            if (!isAudioEnabled || !audioContext) {
+                console.log('🔇 音響システム無効 - 視覚的フィードバックのみ');
+                return;
+            }
+            
+            try {
+                if (audioContext.state === 'suspended') {
+                    console.log('🔇 AudioContext suspended - 視覚的フィードバックのみ');
+                    return;
+                }
+                
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+                oscillator.type = 'sine';
+                
+                const startTime = audioContext.currentTime;
+                const endTime = startTime + duration / 1000;
+                
+                gainNode.gain.setValueAtTime(0, startTime);
+                gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.01); // 0.15 → 0.3
+                gainNode.gain.exponentialRampToValueAtTime(0.001, endTime - 0.01);
+                gainNode.gain.setValueAtTime(0, endTime);
+                
+                oscillator.start(startTime);
+                oscillator.stop(endTime);
+                
+                console.log(`🎵 ビープ音再生: ${frequency}Hz, ${duration}ms (${type})`);
+                
+            } catch (error) {
+                console.warn('⚠️ ビープ音再生エラー:', error);
+            }
+        }
+        
+        // 視覚的フィードバック
+        function showVisualFeedback(type) {
+            const feedback = document.createElement('div');
+            feedback.className = `audio-feedback ${type}`;
+            
+            if (type === 'success') {
+                feedback.textContent = '✅';
+            } else if (type === 'error') {
+                feedback.textContent = '❌';
+            }
+            
+            document.body.appendChild(feedback);
+            
+            setTimeout(() => {
+                if (feedback.parentNode) {
+                    feedback.remove();
+                }
+            }, 600);
+        }
+        
+        // 持出音の再生（カスタム音声対応）
+        function playSuccessSound() {
+            console.log('🎵 持出音再生開始');
+            
+            // カスタム音声がある場合はそれを使用（音声合成なし）
+            if (customBorrowSound) {
+                playCustomSound(customBorrowSound);
+                return;
+            }
+            
+            // デフォルトのファンファーレ + 音声合成
+            if (audioContext && audioContext.state === 'running') {
+                playFanfareSound();
+                // 音声合成も再生（デフォルト音の場合のみ）
+                setTimeout(() => speakText('もちだし'), 100);
+            } else {
+                console.log('🔄 Web Audio API使用不可 - 視覚的フィードバックのみ');
+                showVisualFeedback('success');
+                
+                setTimeout(() => {
+                    if (audioContext && audioContext.state === 'running') {
+                        playFanfareSound();
+                        setTimeout(() => speakText('もちだし'), 100);
+                    }
+                }, 100);
+            }
+        }
+        
+        // 返却音の再生（カスタム音声対応）
+        function playReturnSound() {
+            console.log('🎵 返却音再生開始');
+            
+            // カスタム音声がある場合はそれを使用（音声合成なし）
+            if (customReturnSound) {
+                playCustomSound(customReturnSound);
+                return;
+            }
+            
+            // デフォルトの爆発音 + 音声合成
+            if (audioContext && audioContext.state === 'running') {
+                playExplosionSound();
+                // 音声合成も再生（デフォルト音の場合のみ）
+                setTimeout(() => speakText('へんきゃく'), 200);
+            } else {
+                console.log('🔄 Web Audio API使用不可 - 視覚的フィードバックのみ');
+                showVisualFeedback('success'); // 返却は成功なので緑色
+                
+                setTimeout(() => {
+                    if (audioContext && audioContext.state === 'running') {
+                        playExplosionSound();
+                        setTimeout(() => speakText('へんきゃく'), 200);
+                    }
+                }, 100);
+            }
+        }
+        
+        // エラー音の再生（従来のエラー音を維持）
+        function playErrorSound() {
+            console.log('🎵 エラー音再生開始（残念風）');
+            
+            if (audioContext && audioContext.state === 'running') {
+                // 下降音階（残念音風）
+                playBeepSound(392, 200, 'error'); // ソ（G4）
+                setTimeout(() => playBeepSound(330, 200, 'error'), 250); // ミ（E4）
+                setTimeout(() => playBeepSound(262, 400, 'error'), 500); // ド（C4）（長め）
+            } else {
+                console.log('🔄 Web Audio API使用不可 - 視覚的フィードバックのみ');
+                showVisualFeedback('error');
+                
+                setTimeout(() => {
+                    if (audioContext && audioContext.state === 'running') {
+                        playBeepSound(392, 200, 'error');
+                        setTimeout(() => playBeepSound(330, 200, 'error'), 250);
+                        setTimeout(() => playBeepSound(262, 400, 'error'), 500);
+                    }
+                }, 100);
+            }
+        }
+        
+        // ファンファーレ音の生成
+        function playFanfareSound() {
+            try {
+                const now = audioContext.currentTime;
+                
+                // メロディー部分（主旋律）
+                const melody = [
+                    { freq: 523, start: 0.0, duration: 0.15 }, // ド
+                    { freq: 659, start: 0.15, duration: 0.15 }, // ミ
+                    { freq: 784, start: 0.3, duration: 0.2 }, // ソ
+                    { freq: 1047, start: 0.5, duration: 0.3 }, // 高いド
+                ];
+                
+                // ハーモニー部分
+                const harmony = [
+                    { freq: 415, start: 0.0, duration: 0.15 }, // ソ# (低)
+                    { freq: 523, start: 0.15, duration: 0.15 }, // ド
+                    { freq: 622, start: 0.3, duration: 0.2 }, // ミ♭
+                    { freq: 784, start: 0.5, duration: 0.3 }, // ソ
+                ];
+                
+                // メロディー再生（音量アップ）
+                melody.forEach(note => {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    
+                    osc.connect(gain);
+                    gain.connect(audioContext.destination);
+                    
+                    osc.frequency.setValueAtTime(note.freq, now + note.start);
+                    osc.type = 'triangle';
+                    
+                    gain.gain.setValueAtTime(0, now + note.start);
+                    gain.gain.linearRampToValueAtTime(0.5, now + note.start + 0.02); // 0.2 → 0.5
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + note.start + note.duration);
+                    
+                    osc.start(now + note.start);
+                    osc.stop(now + note.start + note.duration);
+                });
+                
+                // ハーモニー再生（音量アップ）
+                harmony.forEach(note => {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    
+                    osc.connect(gain);
+                    gain.connect(audioContext.destination);
+                    
+                    osc.frequency.setValueAtTime(note.freq, now + note.start);
+                    osc.type = 'sine';
+                    
+                    gain.gain.setValueAtTime(0, now + note.start);
+                    gain.gain.linearRampToValueAtTime(0.3, now + note.start + 0.02); // 0.1 → 0.3
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + note.start + note.duration);
+                    
+                    osc.start(now + note.start);
+                    osc.stop(now + note.start + note.duration);
+                });
+                
+                console.log('🎺 ファンファーレ音再生完了');
+                
+            } catch (error) {
+                console.warn('⚠️ ファンファーレ音再生エラー:', error);
+            }
+        }
+        
+        // 爆発音の生成（ドカーン風）
+        function playExplosionSound() {
+            try {
+                const now = audioContext.currentTime;
+                
+                // 第1段階：「ド」音（衝撃音）
+                const impact1 = audioContext.createOscillator();
+                const impact1Gain = audioContext.createGain();
+                
+                impact1.connect(impact1Gain);
+                impact1Gain.connect(audioContext.destination);
+                
+                impact1.frequency.setValueAtTime(200, now);
+                impact1.frequency.exponentialRampToValueAtTime(80, now + 0.1);
+                impact1.type = 'square';
+                
+                impact1Gain.gain.setValueAtTime(0.7, now); // 0.4 → 0.7
+                impact1Gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                
+                impact1.start(now);
+                impact1.stop(now + 0.1);
+                
+                // 第2段階：「カー」音（持続音 + ノイズ）
+                setTimeout(() => {
+                    const impact2 = audioContext.createOscillator();
+                    const impact2Gain = audioContext.createGain();
+                    const filter = audioContext.createBiquadFilter();
+                    
+                    impact2.connect(filter);
+                    filter.connect(impact2Gain);
+                    impact2Gain.connect(audioContext.destination);
+                    
+                    impact2.frequency.setValueAtTime(150, audioContext.currentTime);
+                    impact2.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.2);
+                    impact2.type = 'sawtooth';
+                    
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(800, audioContext.currentTime);
+                    filter.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.2);
+                    
+                    impact2Gain.gain.setValueAtTime(0.6, audioContext.currentTime); // 0.3 → 0.6
+                    impact2Gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
+                    
+                    impact2.start(audioContext.currentTime);
+                    impact2.stop(audioContext.currentTime + 0.2);
+                }, 80);
+                
+                // 第3段階：「ン」音（余韻）
+                setTimeout(() => {
+                    // ホワイトノイズで余韻
+                    const bufferSize = audioContext.sampleRate * 0.15;
+                    const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    
+                    for (let i = 0; i < bufferSize; i++) {
+                        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.5));
+                    }
+                    
+                    const noiseSource = audioContext.createBufferSource();
+                    const noiseGain = audioContext.createGain();
+                    const noiseFilter = audioContext.createBiquadFilter();
+                    
+                    noiseSource.buffer = buffer;
+                    noiseSource.connect(noiseFilter);
+                    noiseFilter.connect(noiseGain);
+                    noiseGain.connect(audioContext.destination);
+                    
+                    noiseFilter.type = 'highpass';
+                    noiseFilter.frequency.setValueAtTime(400, audioContext.currentTime);
+                    
+                    noiseGain.gain.setValueAtTime(0.4, audioContext.currentTime); // 0.15 → 0.4
+                    noiseGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.15);
+                    
+                    noiseSource.start(audioContext.currentTime);
+                    noiseSource.stop(audioContext.currentTime + 0.15);
+                }, 200);
+                
+                console.log('💥 ドカーン音再生完了');
+                
+            } catch (error) {
+                console.warn('⚠️ ドカーン音再生エラー:', error);
+            }
+        }
+        
+        // 音声合成による発話（自然な人間らしい声設定）
+        function speakText(text) {
+            try {
+                if ('speechSynthesis' in window) {
+                    // 前の音声を停止
+                    speechSynthesis.cancel();
+                    
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'ja-JP';
+                    utterance.rate = 1.0; // 自然な速度
+                    utterance.pitch = 1.2; // 自然な高さ（1.8 → 1.2）
+                    utterance.volume = 1.0; // クリアに
+                    
+                    // より自然な日本語音声を探す
+                    const voices = speechSynthesis.getVoices();
+                    
+                    let selectedVoice = null;
+                    
+                    // 1. 標準的な日本語音声を優先（自然な音声）
+                    selectedVoice = voices.find(voice => 
+                        voice.lang.includes('ja') && 
+                        !voice.name.toLowerCase().includes('novelty') &&
+                        !voice.name.toLowerCase().includes('whisper') &&
+                        (voice.name.includes('Japanese') || 
+                         voice.name.includes('Japan') ||
+                         voice.name.includes('Kyoko') ||
+                         voice.name.includes('Otoya'))
+                    );
+                    
+                    // 2. 女性音声で自然なもの
+                    if (!selectedVoice) {
+                        selectedVoice = voices.find(voice => 
+                            voice.lang.includes('ja') && 
+                            (voice.name.includes('Female') ||
+                             voice.name.includes('女性') ||
+                             voice.name.includes('女'))
+                        );
+                    }
+                    
+                    // 3. デフォルトの日本語音声
+                    if (!selectedVoice) {
+                        selectedVoice = voices.find(voice => voice.lang.includes('ja'));
+                    }
+                    
+                    // 4. システムのデフォルト音声（最後の手段）
+                    if (!selectedVoice) {
+                        selectedVoice = voices.find(voice => voice.default);
+                    }
+                    
+                    if (selectedVoice) {
+                        utterance.voice = selectedVoice;
+                        console.log(`👩 選択された音声: ${selectedVoice.name} (lang: ${selectedVoice.lang})`);
+                    } else {
+                        console.log('🔍 適切な音声が見つかりませんでした。デフォルトを使用します。');
+                    }
+                    
+                    // 発話前に少し待機（音声エンジンの準備時間）
+                    setTimeout(() => {
+                        speechSynthesis.speak(utterance);
+                        console.log(`🗣️ 自然な音声再生: ${text}`);
+                    }, 50);
+                    
+                } else {
+                    console.log('🔇 音声合成API未対応');
+                }
+            } catch (error) {
+                console.warn('⚠️ 音声再生エラー:', error);
+            }
+        }
+        
+
+        
+        // サンプル計測器データ
+        const sampleInstruments = [
+            { managementNo: '11A-001', name: 'マルチテスタ（アナログ）', model: 'YX-361TR' },
+            { managementNo: '11A-002', name: 'マルチテスタ（アナログ）', model: 'YX-361TR' },
+            { managementNo: '11B-003', name: 'デジタルマルチメータ', model: 'TR-6846' },
+            { managementNo: '12A-004', name: 'クランプメータ', model: 'GE-22' },
+            { managementNo: '12A-005', name: 'クランプメータ', model: 'GE-22' },
+            { managementNo: '15A-006', name: '温度計（デジタル）', model: 'TD-100' },
+            { managementNo: '15A-007', name: '温度計（デジタル）', model: 'TD-100' },
+            { managementNo: '20A-008', name: 'オシロスコープ', model: 'OS-2000' }
+        ];
+        
+        // LocalStorage自動保存機能
+        function saveToLocalStorage() {
+            if (!autoSaveEnabled) return false;
+            
+            try {
+                const instrumentsArray = Array.from(instruments.entries()).map(([key, value]) => ({
+                    managementNo: key,
+                    ...value,
+                    borrowCount: value.borrowCount || 0
+                }));
+                
+                const autoSaveData = {
+                    version: '3.5_auto_with_borrower_16',
+                    timestamp: new Date().toISOString(),
+                    dataFormat: 'auto_save_localstorage_with_borrower_16',
+                    instruments: instrumentsArray,
+                    activityLog: activityLog,
+                    dataSource: dataSource,
+                    currentFileName: currentFileName,
+                    borrowerNames: borrowerNames,
+                    selectedBorrowerIndex: selectedBorrowerIndex,
+                    statistics: {
+                        total: instruments.size,
+                        available: Array.from(instruments.values()).filter(i => i.status === 'available').length,
+                        borrowed: Array.from(instruments.values()).filter(i => i.status === 'borrowed').length,
+                        error: Array.from(instruments.values()).filter(i => i.status === 'error').length
+                    },
+                    autoSaveInfo: {
+                        saveTime: new Date().toISOString(),
+                        instrumentCount: instruments.size,
+                        method: 'localStorage'
+                    }
+                };
+                
+                localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(autoSaveData));
+                lastAutoSaveTime = new Date();
+                updateAutoSaveDisplay();
+                
+                console.log('💾 LocalStorage自動保存完了:', instruments.size, '台');
+                return true;
+                
+            } catch (error) {
+                console.error('❌ LocalStorage保存エラー:', error);
+                updateAutoSaveDisplay('error');
+                return false;
+            }
+        }
+        
+        // LocalStorageからの自動読み込み
+        function loadFromLocalStorage() {
+            try {
+                const savedData = localStorage.getItem(LOCALSTORAGE_KEY);
+                if (!savedData) {
+                    console.log('💡 LocalStorage: 保存データなし');
+                    return false;
+                }
+                
+                const autoSaveData = JSON.parse(savedData);
+                console.log('🔄 LocalStorage自動読み込み開始');
+                console.log('保存日時:', autoSaveData.timestamp);
+                console.log('機器数:', autoSaveData.instruments ? autoSaveData.instruments.length : 0);
+                
+                if (autoSaveData.instruments && Array.isArray(autoSaveData.instruments)) {
+                    instruments.clear();
+                    
+                    autoSaveData.instruments.forEach((item, index) => {
+                        try {
+                            const managementNo = item.managementNo;
+                            if (!managementNo || !item.name) {
+                                console.warn(`自動保存データの無効アイテム[${index}]:`, item);
+                                return;
+                            }
+                            
+                            const instrument = {
+                                managementNo: managementNo,
+                                name: String(item.name || '').trim(),
+                                model: String(item.model || '').trim(),
+                                status: item.status || 'available',
+                                borrower: item.borrower || null,
+                                borrowDate: item.borrowDate || null,
+                                returnDate: item.returnDate || null,
+                                borrowCount: item.borrowCount || 0
+                            };
+                            
+                            instruments.set(managementNo, instrument);
+                        } catch (itemError) {
+                            console.error(`自動保存データ復元エラー[${index}]:`, itemError);
+                        }
+                    });
+                    
+                    if (autoSaveData.activityLog && Array.isArray(autoSaveData.activityLog)) {
+                        activityLog = autoSaveData.activityLog;
+                    }
+                    
+                    // 持出者名データの復元
+                    if (autoSaveData.borrowerNames && Array.isArray(autoSaveData.borrowerNames)) {
+                        borrowerNames = autoSaveData.borrowerNames.slice(0, 16);
+                        while (borrowerNames.length < 16) {
+                            borrowerNames.push('');
+                        }
+                        saveBorrowerNamesToStorage();
+                    }
+                    
+                    if (typeof autoSaveData.selectedBorrowerIndex === 'number') {
+                        selectedBorrowerIndex = autoSaveData.selectedBorrowerIndex;
+                    }
+                    
+                    dataSource = 'LocalStorage自動保存';
+                    currentFileName = 'auto_save.json';
+                    
+                    console.log('✅ LocalStorage自動読み込み完了:', instruments.size, '台');
+                    addToLog('SYSTEM', 'LocalStorage自動データを読み込みました', `機器数: ${instruments.size}台, 保存日時: ${new Date(autoSaveData.timestamp).toLocaleString('ja-JP')}`);
+                    
+                    updateDisplay();
+                    updateBorrowerButtons();
+                    updateAutoSaveDisplay();
+                    return true;
+                } else {
+                    console.warn('⚠️ LocalStorage: 無効なデータ形式');
+                    return false;
+                }
+                
+            } catch (error) {
+                console.error('❌ LocalStorage読み込みエラー:', error);
+                addToLog('ERROR', 'LocalStorage自動読み込みエラー', error.message);
+                return false;
+            }
+        }
+        
+        // 自動保存表示の更新
+        function updateAutoSaveDisplay(status = 'success') {
+            const autoSaveElement = document.getElementById('autoSaveDisplay');
+            if (!autoSaveElement) return;
+            
+            let statusText = '';
+            let statusColor = '';
+            
+            switch (status) {
+                case 'success':
+                    if (lastAutoSaveTime) {
+                        const timeText = lastAutoSaveTime.toLocaleTimeString('ja-JP', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        });
+                        statusText = `🔄 自動保存済み (${timeText})`;
+                        statusColor = '#059669';
+                    } else {
+                        statusText = '🔄 自動保存有効（デフォルトON）';
+                        statusColor = '#3b82f6';
+                    }
+                    break;
+                case 'saving':
+                    statusText = '💾 自動保存中...';
+                    statusColor = '#f59e0b';
+                    break;
+                case 'error':
+                    statusText = '❌ 自動保存エラー';
+                    statusColor = '#ef4444';
+                    break;
+                case 'disabled':
+                    statusText = '🔇 自動保存無効';
+                    statusColor = '#9ca3af';
+                    break;
+                default:
+                    statusText = '🔄 自動保存準備中（デフォルトON）';
+                    statusColor = '#6b7280';
+            }
+            
+            autoSaveElement.innerHTML = statusText;
+            autoSaveElement.style.color = statusColor;
+        }
+        
+        // データ変更時の自動保存トリガー
+        function triggerAutoSave() {
+            if (autoSaveEnabled && instruments.size > 0) {
+                updateAutoSaveDisplay('saving');
+                setTimeout(() => {
+                    saveToLocalStorage();
+                }, 500);
+            }
+        }
+        
+        // LocalStorage自動保存の有効/無効切り替え
+        function toggleAutoSave() {
+            autoSaveEnabled = !autoSaveEnabled;
+            
+            if (autoSaveEnabled) {
+                console.log('🔄 LocalStorage自動保存を有効化');
+                saveToLocalStorage();
+                addToLog('SYSTEM', 'LocalStorage自動保存を有効化しました', '');
+            } else {
+                console.log('🔇 LocalStorage自動保存を無効化');
+                updateAutoSaveDisplay('disabled');
+                addToLog('SYSTEM', 'LocalStorage自動保存を無効化しました', '');
+            }
+            
+            updateAutoSaveControls();
+        }
+        
+        // 自動保存コントロールUIの更新
+        function updateAutoSaveControls() {
+            const toggleButton = document.getElementById('autoSaveToggle');
+            if (toggleButton) {
+                if (autoSaveEnabled) {
+                    toggleButton.textContent = '🔇 自動保存OFF';
+                    toggleButton.style.background = '#dc2626';
+                } else {
+                    toggleButton.textContent = '🔄 自動保存ON';
+                    toggleButton.style.background = '#059669';
+                }
+            }
+        }
+        
+        // LocalStorageデータの削除
+        function clearLocalStorageData() {
+            const result = confirm('LocalStorageの自動保存データを削除しますか？\n\n※ 現在のセッションデータは影響を受けません');
+            if (result) {
+                try {
+                    localStorage.removeItem(LOCALSTORAGE_KEY);
+                    lastAutoSaveTime = null;
+                    updateAutoSaveDisplay();
+                    addToLog('SYSTEM', 'LocalStorage自動保存データを削除しました', '');
+                    console.log('🗑️ LocalStorage自動保存データを削除');
+                } catch (error) {
+                    console.error('❌ LocalStorage削除エラー:', error);
+                }
+            }
+        }
+        
+        // 終了時の自動保存
+        function onBeforeUnload() {
+            if (autoSaveEnabled && instruments.size > 0) {
+                saveToLocalStorage();
+                console.log('🔄 終了時LocalStorage自動保存完了');
+            }
+        }
+        
+        // QRコード処理（持出者名機能付き）
+        function processQRCode(qrData) {
+            console.log('=== QRコード処理開始 ===');
+            console.log('入力データ:', JSON.stringify(qrData));
+            console.log('instruments.size:', instruments.size);
+            console.log('選択中の持出者:', selectedBorrowerIndex >= 0 ? borrowerNames[selectedBorrowerIndex] : '未選択');
+            
+            if (instruments.size === 0) {
+                console.error('⚠️ instruments が空です！');
+                const statusCard = document.getElementById('statusCard');
+                statusCard.innerHTML = `
+                    <div>
+                        <h3>⚠️ データ未読み込み</h3>
+                        <p>機器データファイルが読み込まれていません</p>
+                        <p>起動時にデータファイルを選択してください</p>
+                        <button onclick="location.reload()" style="margin-top: 10px; padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                            ページを再読み込み
+                        </button>
+                    </div>
+                `;
+                statusCard.className = 'status-card status-error';
+                addToLog('ERROR', 'データ未読み込みエラー', 'instruments が空の状態でQRコード処理が実行されました');
+                
+                playErrorSound();
+                return;
+            }
+            
+            let managementNo = qrData.trim().toUpperCase().replace(/\s+/g, '');
+            console.log('正規化後の管理番号:', managementNo);
+            
+            const instrument = instruments.get(managementNo);
+            console.log('検索結果:', instrument);
+            
+            const statusCard = document.getElementById('statusCard');
+            
+            if (!instrument) {
+                const allKeys = Array.from(instruments.keys());
+                const partialMatches = allKeys.filter(key => 
+                    key.includes(managementNo) || managementNo.includes(key)
+                );
+                
+                console.log('部分一致検索結果:', partialMatches);
+                
+                if (partialMatches.length > 0) {
+                    console.log('部分一致が見つかりました:', partialMatches[0]);
+                    processQRCode(partialMatches[0]);
+                    return;
+                }
+                
+                console.log('未登録機器:', {
+                    入力: qrData,
+                    正規化後: managementNo,
+                    登録機器数: instruments.size,
+                    登録機器一覧: allKeys.slice(0, 5)
+                });
+                
+                statusCard.innerHTML = `
+                    <div>
+                        <h3>❌ 未登録機器</h3>
+                        <p>管理番号: <strong>${managementNo}</strong></p>
+                        <p>この機器は登録されていません</p>
+                        <p style="font-size: 12px; color: #666;">
+                            登録機器数: ${instruments.size}台<br>
+                            例: ${allKeys.slice(0, 3).join(', ')}...
+                        </p>
+                        <button onclick="debugInstruments()" style="margin-top: 8px; padding: 6px 12px; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                            🔍 詳細確認
+                        </button>
+                    </div>
+                `;
+                statusCard.className = 'status-card status-error';
+                addToLog('ERROR', '未登録機器をスキャン', `管理番号: ${managementNo} (元データ: ${qrData})`);
+                
+                playErrorSound();
+                return;
+            }
+            
+            const now = new Date();
+            const timeString = now.toLocaleString('ja-JP');
+            
+            console.log('処理前の機器状態:', {
+                管理番号: managementNo,
+                機器名: instrument.name,
+                現在の状態: instrument.status,
+                持出者: instrument.borrower
+            });
+            
+            if (instrument.status === 'available') {
+                // 持出処理
+                if (selectedBorrowerIndex < 0 || !borrowerNames[selectedBorrowerIndex].trim()) {
+                    // 持出者が選択されていない場合の警告
+                    statusCard.innerHTML = `
+                        <div>
+                            <h3>⚠️ 持出者未選択</h3>
+                            <p>機器: <strong>${instrument.name}</strong></p>
+                            <p>管理番号: <strong>${managementNo}</strong></p>
+                            <p style="color: #ef4444;">持出者を選択してから再度スキャンしてください</p>
+                        </div>
+                    `;
+                    statusCard.className = 'status-card status-error';
+                    addToLog('ERROR', '持出者未選択エラー', `機器: ${managementNo} - ${instrument.name}`);
+                    
+                    playErrorSound();
+                    return;
+                }
+                
+                const borrower = borrowerNames[selectedBorrowerIndex];
+                
+                instrument.borrowCount = (instrument.borrowCount || 0) + 1;
+                
+                instrument.status = 'borrowed';
+                instrument.borrower = borrower;
+                instrument.borrowDate = now.toISOString();
+                instrument.returnDate = null;
+                
+                statusCard.innerHTML = `
+                    <div>
+                        <h3>📤 持出完了</h3>
+                        <p>機器: <strong>${instrument.name}</strong></p>
+                        <p>管理番号: <strong>${managementNo}</strong></p>
+                        <p>持出者: <strong>${borrower}</strong></p>
+                        <p>持出回数: <strong>${instrument.borrowCount}回目</strong></p>
+                        <p>持出日時: ${timeString}</p>
+                    </div>
+                `;
+                statusCard.className = 'status-card status-borrowed';
+                addToLog('BORROW', '機器を持出', `${managementNo} - ${instrument.name} (${borrower}) [${instrument.borrowCount}回目]`);
+                
+                playSuccessSound();
+                
+            } else if (instrument.status === 'borrowed') {
+                // 返却処理
+                const borrower = instrument.borrower;
+                const borrowCount = instrument.borrowCount || 0;
+                
+                instrument.status = 'available';
+                instrument.borrower = null;
+                instrument.returnDate = now.toISOString();
+                
+                statusCard.innerHTML = `
+                    <div>
+                        <h3>📥 返却完了</h3>
+                        <p>機器: <strong>${instrument.name}</strong></p>
+                        <p>管理番号: <strong>${managementNo}</strong></p>
+                        <p>返却者: <strong>${borrower}</strong></p>
+                        <p>総持出回数: <strong>${borrowCount}回</strong></p>
+                        <p>返却日時: ${timeString}</p>
+                    </div>
+                `;
+                statusCard.className = 'status-card status-available';
+                addToLog('RETURN', '機器を返却', `${managementNo} - ${instrument.name} (${borrower}) [総${borrowCount}回持出]`);
+                
+                playReturnSound();
+            }
+            
+            console.log('処理後の機器状態:', {
+                管理番号: managementNo,
+                機器名: instrument.name,
+                新しい状態: instrument.status,
+                持出者: instrument.borrower
+            });
+            
+            console.log('=== QRコード処理完了 ===');
+            
+            updateStats();
+            updateBorrowedList();
+            
+            triggerAutoSave();
+            
+            updateAutoSaveStatus('saving', '💡 データが変更されました。LocalStorage自動保存が動作中です（デフォルトON）。');
+            setTimeout(() => {
+                updateAutoSaveStatus('success', 'LocalStorage自動保存がメイン動作中（デフォルトON）');
+            }, 4000);
+            
+            if (isScanning) {
+                setTimeout(() => {
+                    if (isScanning) scanLoop();
+                }, 1000);
+            }
+        }
+        
+
+        
+        // QRスキャナー機能
+        function toggleScanner() {
+            if (typeof jsQR === 'undefined') {
+                alert('QRコードライブラリが読み込まれていません。ページを再読み込みしてください。');
+                return;
+            }
+            
+            if (isScanning) {
+                stopScanner();
+            } else {
+                startScanner();
+            }
+        }
+        
+        async function startScanner() {
+            try {
+                const constraints = {
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1920, min: 640 },
+                        height: { ideal: 1080, min: 480 }
+                    }
+                };
+                
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                const video = document.getElementById('video');
+                video.srcObject = stream;
+                
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = resolve;
+                });
+                
+                document.getElementById('cameraContainer').style.display = 'block';
+                document.getElementById('scanButton').textContent = '📷 スキャン中...';
+                document.getElementById('scanButton').disabled = true;
+                
+                isScanning = true;
+                scanLoop();
+            } catch (error) {
+                console.error('カメラアクセスエラー:', error);
+                alert('カメラにアクセスできません。ブラウザの設定を確認してください。');
+            }
+        }
+        
+        function stopScanner() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            document.getElementById('cameraContainer').style.display = 'none';
+            document.getElementById('scanButton').textContent = '📷 カメラでQRコードスキャン';
+            document.getElementById('scanButton').disabled = false;
+            
+            isScanning = false;
+        }
+        
+        function scanLoop() {
+            if (!isScanning || typeof jsQR === 'undefined') return;
+            
+            const video = document.getElementById('video');
+            
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                if (canvas.width > 0 && canvas.height > 0) {
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    try {
+                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height);
+                        
+                        if (code && code.data) {
+                            const currentTime = Date.now();
+                            if (code.data !== lastScannedCode || currentTime - lastScannedTime > SCAN_COOLDOWN) {
+                                lastScannedCode = code.data;
+                                lastScannedTime = currentTime;
+                                
+                                processQRCode(code.data);
+                                return;
+                            }
+                        }
+                    } catch (error) {
+                        console.warn('QR解析エラー:', error);
+                    }
+                }
+            }
+            
+            animationId = requestAnimationFrame(scanLoop);
+        }
+        
+        // 統計更新
+        function updateStats() {
+            const total = instruments.size;
+            const available = Array.from(instruments.values()).filter(i => i.status === 'available').length;
+            const borrowed = Array.from(instruments.values()).filter(i => i.status === 'borrowed').length;
+            const error = Array.from(instruments.values()).filter(i => i.status === 'error').length;
+            
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('availableCount').textContent = available;
+            document.getElementById('borrowedCount').textContent = borrowed;
+            document.getElementById('errorCount').textContent = error;
+            
+            let sourceLabel = 'ファイル';
+            if (dataSource.includes('サンプル')) sourceLabel = 'サンプル';
+            document.getElementById('dataSourceLabel').textContent = sourceLabel;
+        }
+        
+        // 持出中機器リスト更新（確認ダイアログ付き）
+        function updateBorrowedList() {
+            const borrowedList = document.getElementById('borrowedList');
+            const borrowedInstruments = Array.from(instruments.values()).filter(i => i.status === 'borrowed');
+            
+            if (borrowedInstruments.length === 0) {
+                borrowedList.innerHTML = `
+                    <p style="text-align: center; color: #9ca3af; font-size: 14px; padding: 15px;">
+                        現在持出中の機器はありません
+                    </p>
+                `;
+                return;
+            }
+            
+            borrowedInstruments.sort((a, b) => new Date(b.borrowDate) - new Date(a.borrowDate));
+            
+            let html = '';
+            borrowedInstruments.forEach(instrument => {
+                const borrowDate = new Date(instrument.borrowDate);
+                const month = borrowDate.getMonth() + 1;
+                const day = borrowDate.getDate();
+                const hours = borrowDate.getHours().toString().padStart(2, '0');
+                const minutes = borrowDate.getMinutes().toString().padStart(2, '0');
+                const dateTimeText = `${month}/${day} ${hours}:${minutes}`;
+                
+                const borrowCount = instrument.borrowCount || 0;
+                const countText = borrowCount > 0 ? ` (${borrowCount}回目)` : '';
+                
+                html += `
+                    <div class="borrowed-item" onclick="confirmReturn('${instrument.managementNo}')" title="クリックで返却処理">
+                        <div class="borrowed-info">
+                            <div class="borrowed-no">${instrument.managementNo}${countText}</div>
+                            <div class="borrowed-name">${instrument.name}</div>
+                        </div>
+                        <div class="borrowed-details">
+                            <div class="borrowed-user">${instrument.borrower}</div>
+                            <div class="borrowed-datetime">${dateTimeText}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            borrowedList.innerHTML = html;
+        }
+        
+        // 返却確認ダイアログ
+        function confirmReturn(managementNo) {
+            const instrument = instruments.get(managementNo);
+            if (!instrument || instrument.status !== 'borrowed') {
+                console.error('返却対象の機器が見つかりません:', managementNo);
+                return;
+            }
+            
+            const result = confirm(`返却します。よろしいですか？\n\n機器: ${instrument.name}\n管理番号: ${managementNo}\n持出者: ${instrument.borrower}`);
+            
+            if (result) {
+                processQRCode(managementNo);
+                console.log(`返却確認OK: ${managementNo}`);
+            } else {
+                console.log(`返却キャンセル: ${managementNo}`);
+            }
+        }
+        
+        // 活動ログ更新
+        function updateActivityLog() {
+            const logContainer = document.getElementById('activityLog');
+            
+            if (activityLog.length === 0) {
+                logContainer.innerHTML = '<p style="text-align: center; color: #9ca3af; padding: 20px;">まだ活動履歴がありません</p>';
+                return;
+            }
+            
+            let logHTML = '';
+            activityLog.slice(-10).reverse().forEach(entry => {
+                const time = new Date(entry.timestamp).toLocaleString('ja-JP', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                let entryClass = 'other';
+                if (entry.action === 'BORROW') entryClass = 'borrow';
+                else if (entry.action === 'RETURN') entryClass = 'return';
+                else if (entry.action === 'SYSTEM') entryClass = 'system';
+                else if (entry.action === 'FILE') entryClass = 'file';
+                else if (entry.action === 'ERROR') entryClass = 'error';
+                
+                logHTML += `
+                    <div class="log-entry ${entryClass}">
+                        <div class="log-meta">
+                            <span class="log-action">${entry.action}</span>
+                            <span class="log-time">${time}</span>
+                        </div>
+                        <div class="log-details">${entry.details}</div>
+                    </div>
+                `;
+            });
+            
+            logContainer.innerHTML = logHTML;
+        }
+        
+        // ログエントリ追加
+        function addToLog(action, message, details = '') {
+            activityLog.push({
+                timestamp: new Date().toISOString(),
+                action: action,
+                message: message,
+                details: details
+            });
+            
+            updateActivityLog();
+        }
+        
+        // 表示更新
+        function updateDisplay() {
+            updateStats();
+            updateBorrowedList();
+            updateFileInfo();
+            updateFileSystemSupport();
+        }
+        
+        // File System Access APIサポート状況の表示
+        function updateFileSystemSupport() {
+            const supportElement = document.getElementById('fileSystemSupport');
+            if (supportElement) {
+                if ('showSaveFilePicker' in window) {
+                    supportElement.innerHTML = '✅ <strong>場所指定保存対応</strong>: バックアップ時に保存場所を選択可能';
+                    supportElement.style.color = '#065f46';
+                } else {
+                    supportElement.innerHTML = '⚠️ <strong>ダウンロード保存のみ</strong>: バックアップは自動的にダウンロードフォルダに保存';
+                    supportElement.style.color = '#92400e';
+                }
+            }
+        }
+        
+        // 音響ステータス表示の更新
+        function updateSoundStatus() {
+            const borrowStatus = document.getElementById('borrowSoundStatus');
+            const returnStatus = document.getElementById('returnSoundStatus');
+            
+            if (borrowStatus) {
+                borrowStatus.textContent = customBorrowSound ? 'カスタム音声ファイル' : 'ファンファーレ+音声合成';
+            }
+            
+            if (returnStatus) {
+                returnStatus.textContent = customReturnSound ? 'カスタム音声ファイル' : '爆発音+音声合成';
+            }
+        }
+        
+        // ファイル処理関数（持出回数カウント対応・持出者名データ付き）
+        async function saveDataToFile(forceDownload = false) {
+            try {
+                updateAutoSaveStatus('saving', '💾 保存中...');
+                
+                console.log('=== 保存処理開始 ===');
+                console.log('instruments.size:', instruments.size);
+                console.log('forceDownload:', forceDownload);
+                
+                const instrumentsArray = Array.from(instruments.entries()).map(([key, value]) => {
+                    return {
+                        managementNo: key,
+                        ...value,
+                        borrowCount: value.borrowCount || 0
+                    };
+                });
+                
+                const borrowStats = {
+                    totalBorrows: instrumentsArray.reduce((sum, item) => sum + (item.borrowCount || 0), 0),
+                    mostBorrowedInstrument: instrumentsArray.reduce((max, item) => 
+                        (item.borrowCount || 0) > (max.borrowCount || 0) ? item : max, 
+                        { managementNo: 'N/A', borrowCount: 0 }
+                    ),
+                    averageBorrows: Math.round((instrumentsArray.reduce((sum, item) => sum + (item.borrowCount || 0), 0) / instrumentsArray.length) * 100) / 100
+                };
+                
+                const saveData = {
+                    version: '3.5_with_borrower_16',
+                    timestamp: new Date().toISOString(),
+                    filename: DATA_FILENAME,
+                    totalInstruments: instruments.size,
+                    dataFormat: 'key_value_pairs_with_borrow_count_and_borrower_16',
+                    instruments: instrumentsArray,
+                    activityLog: activityLog,
+                    dataSource: dataSource,
+                    borrowerNames: borrowerNames,
+                    selectedBorrowerIndex: selectedBorrowerIndex,
+                    statistics: {
+                        total: instruments.size,
+                        available: Array.from(instruments.values()).filter(i => i.status === 'available').length,
+                        borrowed: Array.from(instruments.values()).filter(i => i.status === 'borrowed').length,
+                        error: Array.from(instruments.values()).filter(i => i.status === 'error').length
+                    },
+                    borrowAnalytics: {
+                        ...borrowStats,
+                        instrumentsWithBorrows: instrumentsArray.filter(item => (item.borrowCount || 0) > 0).length,
+                        instrumentsNeverBorrowed: instrumentsArray.filter(item => (item.borrowCount || 0) === 0).length,
+                        topBorrowedInstruments: instrumentsArray
+                            .filter(item => (item.borrowCount || 0) > 0)
+                            .sort((a, b) => (b.borrowCount || 0) - (a.borrowCount || 0))
+                            .slice(0, 5)
+                            .map(item => ({
+                                managementNo: item.managementNo,
+                                name: item.name,
+                                borrowCount: item.borrowCount || 0
+                            }))
+                    },
+                    debugInfo: {
+                        mapSize: instruments.size,
+                        arrayLength: instrumentsArray.length,
+                        saveTime: new Date().toISOString(),
+                        saveMethod: forceDownload ? 'download' : 'filesystem',
+                        dataVersion: '3.5_with_borrower_16'
+                    }
+                };
+                
+                if (instrumentsArray.length === 0 && instruments.size > 0) {
+                    throw new Error(`データ変換エラー: Map.size=${instruments.size}, Array.length=${instrumentsArray.length}`);
+                }
+                
+                const jsonString = JSON.stringify(saveData, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                
+                if (!forceDownload && 'showSaveFilePicker' in window) {
+                    try {
+                        const fileHandle = await window.showSaveFilePicker({
+                            suggestedName: DATA_FILENAME,
+                            types: [{
+                                description: 'JSON files',
+                                accept: { 'application/json': ['.json'] }
+                            }]
+                        });
+                        
+                        const writable = await fileHandle.createWritable();
+                        await writable.write(jsonString);
+                        await writable.close();
+                        
+                        lastSaveTime = new Date();
+                        updateFileInfo();
+                        updateAutoSaveStatus('success', '✅ バックアップ保存完了（場所指定）');
+                        addToLog('FILE', 'バックアップを保存しました（場所指定）', `ファイル: ${DATA_FILENAME}, 機器数: ${instruments.size}台, 総持出回数: ${borrowStats.totalBorrows}回`);
+                        
+                        console.log('ファイル保存完了（場所指定）:', DATA_FILENAME);
+                        console.log('持出回数統計:', borrowStats);
+                        return true;
+                        
+                    } catch (error) {
+                        if (error.name === 'AbortError') {
+                            console.log('保存がキャンセルされました');
+                            updateAutoSaveStatus('error', '❌ 保存がキャンセルされました');
+                            return false;
+                        }
+                        throw error;
+                    }
+                } else {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = DATA_FILENAME;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    lastSaveTime = new Date();
+                    updateFileInfo();
+                    updateAutoSaveStatus('success', '✅ バックアップ保存完了（ダウンロード）');
+                    addToLog('FILE', 'バックアップを保存しました（ダウンロード）', `ファイル: ${DATA_FILENAME}, 機器数: ${instruments.size}台, 総持出回数: ${borrowStats.totalBorrows}回`);
+                    
+                    console.log('ファイル保存完了（ダウンロード）:', DATA_FILENAME);
+                    console.log('持出回数統計:', borrowStats);
+                    return true;
+                }
+                
+            } catch (error) {
+                console.error('保存エラー:', error);
+                updateAutoSaveStatus('error', '❌ 保存エラー: ' + error.message);
+                addToLog('ERROR', 'ファイル保存エラー', error.message);
+                return false;
+            }
+        }
+        
+        function loadDataFromFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const jsonData = JSON.parse(e.target.result);
+                        processFileData(jsonData, file.name);
+                        resolve(true);
+                    } catch (error) {
+                        console.error('ファイル読み込みエラー:', error);
+                        addToLog('ERROR', 'ファイル読み込みエラー', error.message);
+                        reject(error);
+                    }
+                };
+                reader.readAsText(file);
+            });
+        }
+        
+        function processFileData(jsonData, filename) {
+            try {
+                console.log('=== ファイルデータ処理開始 ===');
+                console.log('jsonData version:', jsonData.version);
+                console.log('jsonData.instruments type:', Array.isArray(jsonData.instruments) ? 'Array' : typeof jsonData.instruments);
+                console.log('jsonData.instruments length:', jsonData.instruments ? jsonData.instruments.length : 0);
+                
+                let processedData = [];
+                
+                if (Array.isArray(jsonData)) {
+                    processedData = jsonData;
+                } else if (jsonData.instruments && Array.isArray(jsonData.instruments)) {
+                    processedData = jsonData.instruments;
+                } else {
+                    throw new Error('対応していないファイル形式です');
+                }
+                
+                console.log('processedData length:', processedData.length);
+                console.log('processedData sample:', processedData.slice(0, 2));
+                
+                instruments.clear();
+                let validCount = 0;
+                let invalidCount = 0;
+                
+                processedData.forEach((item, index) => {
+                    try {
+                        let managementNo = item.managementNo || item.key || item.id;
+                        
+                        if (!managementNo || !item.name) {
+                            console.warn(`Invalid item at index ${index}:`, item);
+                            invalidCount++;
+                            return;
+                        }
+                        
+                        managementNo = String(managementNo).trim();
+                        
+                        const instrument = {
+                            managementNo: managementNo,
+                            name: String(item.name || '').trim(),
+                            model: String(item.model || '').trim(),
+                            status: item.status || 'available',
+                            borrower: item.borrower || null,
+                            borrowDate: item.borrowDate || null,
+                            returnDate: item.returnDate || null,
+                            borrowCount: item.borrowCount || 0
+                        };
+                        
+                        instruments.set(managementNo, instrument);
+                        validCount++;
+                        
+                        console.log(`Loaded instrument: ${managementNo} -> ${instrument.name}`);
+                        
+                    } catch (itemError) {
+                        console.error(`Error processing item at index ${index}:`, itemError, item);
+                        invalidCount++;
+                    }
+                });
+                
+                console.log('=== Map復元結果 ===');
+                console.log('instruments.size:', instruments.size);
+                console.log('validCount:', validCount);
+                console.log('invalidCount:', invalidCount);
+                console.log('instruments.keys():', Array.from(instruments.keys()));
+                
+                if (jsonData.activityLog && Array.isArray(jsonData.activityLog)) {
+                    activityLog = jsonData.activityLog;
+                    console.log('Activity log restored:', activityLog.length, 'entries');
+                } else {
+                    activityLog = [];
+                    console.log('No activity log found, starting fresh');
+                }
+                
+                // 持出者名データの復元
+                if (jsonData.borrowerNames && Array.isArray(jsonData.borrowerNames)) {
+                    borrowerNames = jsonData.borrowerNames.slice(0, 16);
+                    while (borrowerNames.length < 16) {
+                        borrowerNames.push('');
+                    }
+                    saveBorrowerNamesToStorage();
+                    console.log('Borrower names restored:', borrowerNames);
+                }
+                
+                if (typeof jsonData.selectedBorrowerIndex === 'number') {
+                    selectedBorrowerIndex = jsonData.selectedBorrowerIndex;
+                    console.log('Selected borrower index restored:', selectedBorrowerIndex);
+                }
+                
+                currentFileName = filename;
+                dataSource = jsonData.dataSource || 'ファイル';
+                
+                if (instruments.size === 0 && processedData.length > 0) {
+                    throw new Error(`Map復元失敗: 処理データ数=${processedData.length}, Map.size=${instruments.size}`);
+                }
+                
+                updateDisplay();
+                updateBorrowerButtons();
+                updateFileInfo();
+                addToLog('FILE', 'データファイルを読み込みました', `ファイル: ${filename}, 機器数: ${instruments.size}台 (有効: ${validCount}, 無効: ${invalidCount})`);
+                
+                triggerAutoSave();
+                
+                console.log('=== ファイルデータ処理完了 ===');
+                console.log('最終結果:', {
+                    ファイル: filename,
+                    機器数: instruments.size,
+                    ログ数: activityLog.length,
+                    有効データ: validCount,
+                    無効データ: invalidCount,
+                    持出者名数: borrowerNames.filter(n => n).length
+                });
+                
+                if (invalidCount > 0) {
+                    updateAutoSaveStatus('error', `⚠️ 読み込み完了: ${validCount}件成功, ${invalidCount}件失敗`);
+                }
+                
+            } catch (error) {
+                console.error('=== ファイルデータ処理エラー ===');
+                console.error('Error details:', error);
+                console.error('jsonData structure:', Object.keys(jsonData));
+                throw new Error('ファイルデータの処理に失敗しました: ' + error.message);
+            }
+        }
+        
+        // UI更新関数
+        function updateAutoSaveStatus(status, message) {
+            const statusElement = document.getElementById('autoSaveStatus');
+            const messageElement = document.getElementById('autoSaveMessage');
+            
+            statusElement.className = `auto-save-status ${status}`;
+            messageElement.textContent = message;
+            
+            if (status === 'success') {
+                setTimeout(() => {
+                    statusElement.className = 'auto-save-status';
+                    messageElement.innerHTML = 'LocalStorage自動保存がメイン動作中（デフォルトON）';
+                }, 3000);
+            }
+        }
+        
+        function updateFileInfo() {
+            document.getElementById('currentFileName').textContent = dataSource.includes('LocalStorage') ? 
+                'LocalStorage自動保存' : (currentFileName || 'LocalStorage自動保存');
+            document.getElementById('lastModified').textContent = lastAutoSaveTime ? 
+                lastAutoSaveTime.toLocaleString('ja-JP') : (lastSaveTime ? lastSaveTime.toLocaleString('ja-JP') : '-');
+            document.getElementById('fileInstrumentCount').textContent = `${instruments.size}台`;
+        }
+        
+        // バックアップ保存設定（自動保存がメイン）
+        function setupManualSaveOnly() {
+            if (autoSaveInterval) {
+                clearInterval(autoSaveInterval);
+                autoSaveInterval = null;
+            }
+            
+            addToLog('SYSTEM', 'LocalStorage自動保存メイン + バックアップ手動保存モードを設定しました', 'メイン: 自動保存（デフォルトON）、バックアップ: 手動保存');
+            
+            updateAutoSaveStatus('success', '✅ LocalStorage自動保存がメイン動作中（デフォルトON）');
+        }
+        
+        // 手動操作関数（バックアップ保存用）
+        async function manualSave() {
+            if (instruments.size === 0) {
+                alert('バックアップするデータがありません');
+                return;
+            }
+            
+            if ('showSaveFilePicker' in window) {
+                const choice = confirm(`バックアップ作成方式を選択してください：
+
+OK: 📁 保存場所を指定してバックアップ作成
+キャンセル: 💾 ダウンロードフォルダにバックアップ作成
+
+推奨: 保存場所を指定する方が管理しやすいです。`);
+                
+                if (choice) {
+                    await saveDataToFile(false);
+                } else {
+                    await saveDataToFile(true);
+                }
+            } else {
+                alert('お使いのブラウザでは自動的にダウンロードフォルダにバックアップを作成します。');
+                await saveDataToFile(true);
+            }
+        }
+        
+        // バックアップ作成（日時付きファイル名）
+        async function exportBackup() {
+            if (instruments.size === 0) {
+                alert('バックアップするデータがありません');
+                return;
+            }
+            
+            const backupFilename = `mr_qr_backup_${getDateString()}.json`;
+            
+            try {
+                const instrumentsArray = Array.from(instruments.entries()).map(([key, value]) => ({
+                    managementNo: key,
+                    ...value,
+                    borrowCount: value.borrowCount || 0
+                }));
+                
+                const totalBorrows = instrumentsArray.reduce((sum, item) => sum + (item.borrowCount || 0), 0);
+                
+                const backupData = {
+                    version: '3.5_with_borrower_16',
+                    timestamp: new Date().toISOString(),
+                    filename: backupFilename,
+                    totalInstruments: instruments.size,
+                    dataFormat: 'backup_with_borrow_count_and_borrower_16',
+                    instruments: instrumentsArray,
+                    activityLog: activityLog,
+                    dataSource: dataSource,
+                    borrowerNames: borrowerNames,
+                    selectedBorrowerIndex: selectedBorrowerIndex,
+                    backupNote: '手動バックアップファイル（持出回数統計・持出者名16名付き）',
+                    statistics: {
+                        total: instruments.size,
+                        available: Array.from(instruments.values()).filter(i => i.status === 'available').length,
+                        borrowed: Array.from(instruments.values()).filter(i => i.status === 'borrowed').length,
+                        error: Array.from(instruments.values()).filter(i => i.status === 'error').length
+                    },
+                    borrowAnalytics: {
+                        totalBorrows: totalBorrows,
+                        instrumentsWithBorrows: instrumentsArray.filter(item => (item.borrowCount || 0) > 0).length,
+                        averageBorrows: Math.round((totalBorrows / instrumentsArray.length) * 100) / 100
+                    }
+                };
+                
+                const jsonString = JSON.stringify(backupData, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = backupFilename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                updateAutoSaveStatus('success', '✅ バックアップ作成完了');
+                addToLog('FILE', 'バックアップを作成しました', `ファイル: ${backupFilename}, 機器数: ${instruments.size}台`);
+                
+            } catch (error) {
+                console.error('バックアップ作成エラー:', error);
+                updateAutoSaveStatus('error', '❌ バックアップ作成エラー: ' + error.message);
+            }
+        }
+        
+        function loadNewFile() {
+            document.getElementById('fileInput').click();
+        }
+        
+        // サンプルデータ読み込み
+        function loadSampleData() {
+            console.log('=== サンプルデータ読み込み開始 ===');
+            
+            instruments.clear();
+            
+            sampleInstruments.forEach((item, index) => {
+                const managementNo = item.managementNo;
+                const instrument = {
+                    managementNo: managementNo,
+                    name: item.name,
+                    model: item.model,
+                    status: 'available',
+                    borrower: null,
+                    borrowDate: null,
+                    returnDate: null,
+                    borrowCount: 0
+                };
+                
+                instruments.set(managementNo, instrument);
+                console.log(`Sample[${index}]: ${managementNo} -> ${instrument.name}`);
+            });
+            
+            console.log('サンプルデータ読み込み完了:', {
+                読み込み数: sampleInstruments.length,
+                Map_size: instruments.size,
+                keys: Array.from(instruments.keys())
+            });
+            
+            activityLog = [];
+            currentFileName = DATA_FILENAME;
+            dataSource = 'サンプルデータ（LocalStorage自動保存中）';
+            
+            updateDisplay();
+            updateFileInfo();
+            addToLog('SYSTEM', 'サンプルデータを読み込みました', `${sampleInstruments.length}台の機器データ`);
+            
+            triggerAutoSave();
+            
+            const statusCard = document.getElementById('statusCard');
+            statusCard.textContent = '📷 QRコードをスキャンしてください';
+            statusCard.className = 'status-card';
+            
+            const isValid = validateInstrumentsData();
+            if (!isValid) {
+                console.error('サンプルデータに整合性の問題があります');
+                updateAutoSaveStatus('error', '⚠️ データ整合性エラー');
+            } else {
+                updateAutoSaveStatus('saving', '💡 サンプルデータを読み込みました。LocalStorage自動保存が有効です（デフォルトON）。');
+                setTimeout(() => {
+                    updateAutoSaveStatus('success', '✅ LocalStorage自動保存メイン運用中（デフォルトON）');
+                }, 5000);
+            }
+        }
+        
+        // デバッグ用関数（持出回数統計付き）
+        function debugInstruments() {
+            console.log('=== instruments 詳細デバッグ ===');
+            console.log('Map.size:', instruments.size);
+            console.log('Map.keys():', Array.from(instruments.keys()));
+            console.log('Map.values():', Array.from(instruments.values()));
+            console.log('Map.entries():', Array.from(instruments.entries()));
+            console.log('Constructor:', instruments.constructor.name);
+            console.log('Is Map:', instruments instanceof Map);
+            
+            const instrumentsArray = Array.from(instruments.values());
+            const borrowCounts = instrumentsArray.map(item => item.borrowCount || 0);
+            const totalBorrows = borrowCounts.reduce((sum, count) => sum + count, 0);
+            const maxBorrows = Math.max(...borrowCounts);
+            const instrumentsWithBorrows = instrumentsArray.filter(item => (item.borrowCount || 0) > 0);
+            
+            console.log('=== 持出回数統計 ===');
+            console.log('総持出回数:', totalBorrows);
+            console.log('最大持出回数:', maxBorrows);
+            console.log('持出履歴のある機器数:', instrumentsWithBorrows.length);
+            console.log('平均持出回数:', Math.round((totalBorrows / instrumentsArray.length) * 100) / 100);
+            
+            const instrumentsArrayWithEntries = Array.from(instruments.entries());
+            instrumentsArrayWithEntries.forEach(([key, value], index) => {
+                console.log(`Instrument[${index}]:`, {
+                    key: key,
+                    value: value,
+                    keyType: typeof key,
+                    valueType: typeof value,
+                    borrowCount: value.borrowCount || 0
+                });
+            });
+            
+            if (instruments.size > 0) {
+                const firstKey = Array.from(instruments.keys())[0];
+                console.log('First instrument details:', {
+                    key: firstKey,
+                    value: instruments.get(firstKey),
+                    hasKey: instruments.has(firstKey)
+                });
+            }
+            
+            const topBorrowed = instrumentsWithBorrows
+                .sort((a, b) => (b.borrowCount || 0) - (a.borrowCount || 0))
+                .slice(0, 5);
+            
+            console.log('=== 持出回数TOP5 ===');
+            topBorrowed.forEach((item, index) => {
+                console.log(`${index + 1}位: ${item.managementNo} - ${item.name} (${item.borrowCount}回)`);
+            });
+            
+            console.log('=== 持出者名管理 ===');
+            console.log('登録持出者名:', borrowerNames);
+            console.log('選択中の持出者:', selectedBorrowerIndex >= 0 ? borrowerNames[selectedBorrowerIndex] : '未選択');
+            
+            const details = `
+instruments 詳細情報:
+・サイズ: ${instruments.size}
+・キー数: ${Array.from(instruments.keys()).length}
+・値数: ${Array.from(instruments.values()).length}
+・Map形式: ${instruments instanceof Map ? 'はい' : 'いいえ'}
+
+📊 持出回数統計:
+・総持出回数: ${totalBorrows}回
+・最大持出回数: ${maxBorrows}回
+・持出履歴のある機器: ${instrumentsWithBorrows.length}台
+・平均持出回数: ${Math.round((totalBorrows / instrumentsArray.length) * 100) / 100}回
+
+            👤 持出者名管理:
+・登録数: ${borrowerNames.filter(name => name.trim()).length}/16
+・選択中: ${selectedBorrowerIndex >= 0 ? borrowerNames[selectedBorrowerIndex] : '未選択'}
+
+登録管理番号 (最初の5つ):
+${Array.from(instruments.keys()).slice(0, 5).join('\n')}
+
+${instruments.size > 5 ? `\n...他${instruments.size - 5}件` : ''}
+
+🏆 持出回数TOP3:
+${topBorrowed.slice(0, 3).map((item, i) => `${i + 1}位: ${item.managementNo} (${item.borrowCount}回)`).join('\n')}
+
+詳細はブラウザのコンソールで確認できます。
+            `;
+            
+            alert(details);
+        }
+        
+        // データ整合性チェック
+        function validateInstrumentsData() {
+            console.log('=== データ整合性チェック ===');
+            
+            const issues = [];
+            
+            if (!(instruments instanceof Map)) {
+                issues.push('instruments がMap形式ではありません');
+            }
+            
+            if (instruments.size === 0) {
+                issues.push('instruments が空です');
+            }
+            
+            const instrumentsArray = Array.from(instruments.entries());
+            instrumentsArray.forEach(([key, value], index) => {
+                if (typeof key !== 'string' || key.trim() === '') {
+                    issues.push(`インデックス ${index}: 無効なキー "${key}"`);
+                }
+                
+                if (!value || typeof value !== 'object') {
+                    issues.push(`インデックス ${index}: 無効な値`);
+                } else {
+                    if (!value.managementNo || !value.name) {
+                        issues.push(`インデックス ${index}: 必須フィールド不足 (managementNo: ${value.managementNo}, name: ${value.name})`);
+                    }
+                    
+                    if (value.managementNo !== key) {
+                        issues.push(`インデックス ${index}: キーと管理番号が不一致 (key: ${key}, managementNo: ${value.managementNo})`);
+                    }
+                }
+            });
+            
+            console.log('整合性チェック結果:', {
+                総件数: instruments.size,
+                問題数: issues.length,
+                問題詳細: issues
+            });
+            
+            if (issues.length > 0) {
+                console.error('データ整合性の問題が検出されました:', issues);
+                return false;
+            } else {
+                console.log('データ整合性: OK');
+                return true;
+            }
+        }
+        
+        function getDateString() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            return `${year}${month}${day}_${hours}${minutes}`;
+        }
+        
+        // イベントリスナー設定
+        document.addEventListener('DOMContentLoaded', function() {
+            // 音響システムの初期化（デフォルトON）
+            initAudioSystem();
+            
+            // 音声合成の初期化
+            if ('speechSynthesis' in window) {
+                // 音声リストの読み込みを待つ
+                if (speechSynthesis.getVoices().length === 0) {
+                    speechSynthesis.addEventListener('voiceschanged', function() {
+                        console.log('🗣️ 音声合成システム初期化完了');
+                    });
+                } else {
+                    console.log('🗣️ 音声合成システム初期化完了');
+                }
+            }
+            
+            if (audioContext) {
+                if (audioContext.state === 'suspended') {
+                    console.log('🔇 音響システム: 待機中 - クリックで自動有効化（デフォルトON）');
+                } else if (audioContext.state === 'running') {
+                    console.log('🔊 音響システム: 有効（デフォルトON）');
+                } else {
+                    console.log('🔊 音響システム: 有効（デフォルトON）');
+                }
+            } else {
+                console.log('❌ 音響システム: エラー');
+            }
+            
+            // 持出者名システムの初期化
+            initBorrowerNames();
+            
+            // バックアップ保存設定
+            setupManualSaveOnly();
+            
+            // LocalStorage自動読み込みを試行
+            const autoLoaded = loadFromLocalStorage();
+            
+            if (!autoLoaded) {
+                // LocalStorageにデータがない場合はサンプルデータを読み込み
+                loadSampleData();
+            }
+            
+            // 自動保存コントロールの初期化（デフォルトON）
+            updateAutoSaveControls();
+            updateAutoSaveDisplay();
+            
+            // 音声ファイル入力のイベントリスナー
+            document.getElementById('borrowSoundInput').addEventListener('change', async function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    try {
+                        if (!audioContext) {
+                            await initAudioSystem();
+                        }
+                        if (audioContext.state === 'suspended') {
+                            await audioContext.resume();
+                        }
+                        
+                        await loadAudioFile(file, 'borrow');
+                        updateSoundStatus();
+                        alert(`持出音ファイル「${file.name}」を設定しました！\nテスト再生で確認できます。`);
+                    } catch (error) {
+                        console.error('持出音ファイル読み込みエラー:', error);
+                        alert(`音声ファイルの読み込みに失敗しました：${error.message}`);
+                    }
+                }
+                e.target.value = ''; // ファイル選択をリセット
+            });
+            
+            document.getElementById('returnSoundInput').addEventListener('change', async function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    try {
+                        if (!audioContext) {
+                            await initAudioSystem();
+                        }
+                        if (audioContext.state === 'suspended') {
+                            await audioContext.resume();
+                        }
+                        
+                        await loadAudioFile(file, 'return');
+                        updateSoundStatus();
+                        alert(`返却音ファイル「${file.name}」を設定しました！\nテスト再生で確認できます。`);
+                    } catch (error) {
+                        console.error('返却音ファイル読み込みエラー:', error);
+                        alert(`音声ファイルの読み込みに失敗しました：${error.message}`);
+                    }
+                }
+                e.target.value = ''; // ファイル選択をリセット
+            });
+            
+            // 音声ステータス表示の初期化
+            updateSoundStatus();
+            
+            // ファイル読み込み
+            document.getElementById('fileInput').addEventListener('change', async function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    try {
+                        await loadDataFromFile(file);
+                        updateAutoSaveStatus('success', '✅ ファイル読み込み完了');
+                    } catch (error) {
+                        updateAutoSaveStatus('error', '❌ 読み込みエラー: ' + error.message);
+                    }
+                }
+            });
+            
+
+            
+            // 自動音響アクティベーション（デフォルトON対応）
+            document.addEventListener('click', function autoActivateAudio() {
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        console.log('🎵 音響システム自動アクティベート完了（デフォルトON）');
+                        
+                        // 初回アクティベート時に軽くファンファーレを鳴らして確認
+                        setTimeout(() => {
+                            playBeepSound(523, 150, 'success'); // 軽いド音
+                            setTimeout(() => playBeepSound(659, 150, 'success'), 170); // 軽いミ音
+                        }, 200);
+                    });
+                }
+                // 一度実行したら削除
+                document.removeEventListener('click', autoActivateAudio);
+            });
+            
+            // モーダル外クリックで閉じる
+            document.getElementById('borrowerModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeBorrowerEditor();
+                }
+            });
+            
+            // 終了時自動保存の設定
+            window.addEventListener('beforeunload', onBeforeUnload);
+            
+            // visibilitychange時の自動保存（タブ切り替え等）
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'hidden') {
+                    if (autoSaveEnabled && instruments.size > 0) {
+                        saveToLocalStorage();
+                        console.log('🔄 タブ非表示時LocalStorage自動保存完了');
+                    }
+                }
+            });
+            
+            console.log('🚀 システム初期化完了 - LocalStorage自動保存メイン（デフォルトON） + バックアップ手動保存（ファンファーレ・爆発音・音声対応・カスタム音声対応・持出者名機能付き・16名対応）');
+        });
+    </script>
+</body>
+</html>
